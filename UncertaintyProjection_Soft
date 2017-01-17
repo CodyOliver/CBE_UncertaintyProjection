@@ -1,0 +1,144 @@
+//PARTICLE PROPERTIES
+int N = 4000; //number of particles in ensemble
+
+int pOpacity = 255; //fill opacity: (transparent,opaque) = (0,255)
+
+float pSize = 4; //particle size in pixels
+
+float initPosX = 0.0;
+float initPosY = 0.0;
+
+float initVelX = 0.0;
+float initVelY = 0.0;
+
+float initPosSpread = 100.0;
+float initVelSpread = 2.0;
+
+//CANVAS PROPERTIES
+int frameRate = 25;
+
+int canvasWidth = 1600;
+int canvasHeight = 900;
+
+float canvasCenterX = canvasWidth/2.0;
+float canvasCenterY = canvasHeight/2.0;
+
+//PARTICLE OBJECT CLASS
+
+class Particle {
+
+  //GLOBAL VARIABLES
+  float x = 0;
+  float y = 0;
+
+  float vx = 0;
+  float vy = 0;
+  
+  float temp = 0.05; //temperature
+  float gamma = 0.00002; //damping coefficient
+  float k = 0.001; //trap strength
+
+  float size = 0;
+  float opacity = 0;
+  
+  //CONSTRUCTORS
+  Particle(float _x, float _y, float _vx, 
+  float _vy, float _opacity, float _size) {
+
+    x = _x;
+    y = _y;
+    vx = _vx;
+    vy = _vy;
+    
+    opacity = _opacity;
+    size = _size;
+    
+  }
+
+
+  //FUNCTIONS
+  void run() {
+    
+    temp = 0.025*((canvasHeight-mouseY)*(canvasHeight-mouseY)/(canvasHeight+14500));
+
+    display();
+    move();
+    harmonic(temp);
+    thermal(temp);
+    
+  }
+
+
+  void display() {
+  
+    fill(255, 255, 255, opacity);
+    noStroke();
+    ellipse(x, y, size, size);
+    
+  }
+
+  void move() {
+
+    x += vx;
+    y += vy;
+  }
+
+  void bounce() {
+
+    if (x > canvasWidth || x < 0) vx = -vx;
+    if (y > canvasHeight || y < 0) vy = -vy;
+  }
+
+  void harmonic(float temp) {
+
+    vx += -k*temp*(x-canvasWidth/2);
+    vy += -k*temp*(y-canvasHeight/2);
+    
+  }
+
+  void thermal(float temp) {
+
+    vx += random(-1.2*temp,1.2*temp) - 0.08*temp*vx;
+    vy += random(-1.2*temp,1.2*temp) - 0.08*temp*vy;
+    
+  }
+  
+  
+}
+
+
+//DECLARATION OF PARTICLE OBJECTS
+Particle [] particleCollection = new Particle [N];
+
+void setup() {
+
+  frameRate(frameRate);
+  size(canvasWidth, canvasWidth);
+  smooth();
+
+  //INTIALIZE PARTICLE ENSEMBLE
+  for (int i = 0; i < N; i++) {
+  
+    initPosX = random(canvasCenterX-initPosSpread,canvasCenterX+initPosSpread);
+    initPosY = random(canvasCenterY-initPosSpread,canvasCenterY+initPosSpread)
+  
+    initVelX = random(-initVelSpread,initVelSpread);
+    initVelY = random(-initVelSpread,initVelSpread);
+
+    particleCollection[i] = new Particle(initPosX,initPosY,initVelX,initVelY,pOpacity,pSize);
+    
+  }
+}
+
+
+
+
+void draw() {
+
+  for (int i = 0; i < N; i++) {
+  
+    particleCollection[i].run();
+  
+  }
+  
+}
