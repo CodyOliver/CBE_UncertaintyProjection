@@ -1,86 +1,4 @@
-int N = 900;
-
-class Particle {
-
-  //GLOBAL VARIABLES
-  float x = 0;
-  float y = 0;
-
-  float vx = 0;
-  float vy = 0;
-
-
-  float temp = 0.0;
-  float omega = 0.0;
-
-  float size = 0;
-
-  float opacity = 0;
-
-  float k = 0.005;
-
-
-  //CONSTRUCTORS
-  Particle(float _x, float _y, float _vx, 
-    float _vy, float _opacity, float _size) {
-
-    x = _x;
-    y = _y;
-    vx = _vx;
-    vy = _vy;
-
-    opacity = _opacity;
-    size = _size;
-  }
-
-
-  //FUNCTIONS
-  void run(float knob) {
-
-    temp = 0.05*knob*knob;
-
-    display();
-    move();
-    harmonic(temp);
-    thermal(temp);
-  }
-
-
-  void display() {
-
-    //lights();
-    fill(251, 80, 20, opacity);
-    //stroke(255, 100, 150, 100);
-    noStroke();
-    ellipse(x, y, size, size);
-  }
-
-
-
-  void move() {
-
-    x += vx;
-    y += vy;
-  }
-
-  void bounce() {
-
-    if (x > width || x < 0) vx = -vx;
-    if (y > height || y < 0) vy = -vy;
-  }
-
-  void harmonic(float _knob) {
-
-    vx += -k*_knob*(x-width/2);
-    vy += -k*_knob*(y-height/2);
-  }
-
-  void thermal(float _knob) {
-
-    vx += random(-1.2*sqrt(_knob), 1.2*sqrt(_knob)) - 0.16*_knob*vx;
-    vy += random(-1.2*sqrt(_knob), 1.2*sqrt(_knob)) - 0.16*_knob*vy;
-  }
-}
+int N = 1000;
 
 //DECLARE
 Particle [] particleCollection1 = new Particle [N];
@@ -88,33 +6,29 @@ Particle [] particleCollection2 = new Particle [N];
 
 import processing.serial.*;
 
-Serial myPort;  // Create object from Serial class
-int val;     // Data received from the serial port
-float m;
+Serial myPort;  
+
+//Val should be string
+String val;     
 
 
 void setup() {
-  
-  size(1200, 700);
-  
+
+  frameRate(30);
+
   String portName = Serial.list()[1]; //change the 0 to a 1 or 2 etc. to match your port
   myPort = new Serial(this, portName, 9600);
 
-  
+  size(400, 400);
   smooth();
-  //background(251, 5, 80);
-
+  
   //INTIALIZE
   for (int i = 0; i < N; i++) {
 
-    particleCollection1[i] = new Particle(random(width/2-20,width/2+20), 
-    random(height/2-20, height/2+20), 
-    random(-2, 2), random(-2, 2),80+random(-70,50),
-    7+random(-1,1));
+    particleCollection1[i] = new Particle(random(width/2-100, width/2+100), 
+      random(height/2-100, height/2+100), 
+      random(-2, 2), random(-2, 2), 255,2);
   }
-  
-  frameRate(300);
-  
 }
 
 
@@ -123,45 +37,19 @@ float yCenter = height/2;
 
 
 void draw() {
-
-  
+  //Val needs to remain string
   if ( myPort.available() > 0) 
   {  // If data is available,
-     val = myPort.read(); 
-     m = map(val,255,0,7,0);
-     
-  }
- 
-  background(100, 30, 60,50);
-  
-   int discRadius = 5;
-   float dist = 0;
+  val = myPort.readStringUntil('\n');         // read it and store it in val
+  } 
+  println(val); //print it out in the console
 
-  
- for (int j = 0; j < width/discRadius; j++){
-    
-    for (int k = 0; k < height/discRadius; k++){
-      
-      dist = sqrt((j*discRadius-width/2)*(j*discRadius-width/2)
-      +(k*discRadius-height/2)*(k*discRadius-height/2));
-      
-      fill(251, 70, 90, 100-20*sin(0.03*sqrt(m/10)*dist)*sin(0.01*sqrt(m)*frameCount));
-      rect(j*discRadius,k*discRadius,discRadius,discRadius);
-      
-      
-    }
-    
-
-    
-  }
+  background(20, 10, 20, 50);
 
 
   //CALL FUNCTIONALITY
   for (int i = 0; i < N; i++) {
 
-    particleCollection1[i].run(m);
- 
+    particleCollection1[i].run();
   }
-  
-  
 }
