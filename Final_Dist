@@ -1,0 +1,208 @@
+int N = 1400;
+int FrameRate = 20;
+int distDataSampleNum = int(FrameRate);
+
+int counter = 0;
+
+float valNum;
+
+boolean disp = true;
+
+//DECLARE
+Particle [] particleCollection1 = new Particle [N];
+Particle [] particleCollection2 = new Particle [N];
+
+float [] positionCollection = new float [N];
+
+float [] distDataUltra = new float [distDataSampleNum];
+
+import processing.serial.*;
+Serial myPort;  
+String val;
+
+int testCounter = 0;
+
+float avgDist = 0.0;
+
+float bckgrndColorRFinal = 255.0;
+float bckgrndColorGFinal = 0;
+float bckgrndColorBFinal = 0;
+
+float bckgrndColorRInit = 240.0;
+float bckgrndColorGInit = 40.0;
+float bckgrndColorBInit = 20.0;
+
+float bckgrndColorR = 0.0;
+float bckgrndColorG = 0.0;
+float bckgrndColorB = 0.0;
+
+
+float normMouseYPos = 0.0;
+
+float phaseBetweenClouds = PI/4.0;
+
+float cloudXCenterLeft =  0.0;
+float cloudXCenterRight = 250;
+float distBetweenClouds = 400+400*abs(parseFloat(mouseY)-height)/height;
+
+void setup() {
+
+
+  frameRate(FrameRate);
+
+  String portName = Serial.list()[1]; //change the 0 to a 1 or 2 etc. to match your port
+  myPort = new Serial(this, portName, 9600);
+
+  size(1100, 700);
+  //smooth();
+
+  float xCenter = width/2;
+  float yCenter = height/2;
+
+  float InitBoxWidth = 100;
+  float InitBoxHeight = 100;
+
+  float InitXPosLeft = xCenter-InitBoxWidth;
+  float InitXPosRight = xCenter+InitBoxWidth;
+
+  float InitYPosDown = yCenter-InitBoxHeight;
+  float InitYPosUp = yCenter+InitBoxHeight;
+
+  int InitVelocitySpread = 2;   
+  float ParticleSize = 0;
+
+  int ParticleTint = 255; //white
+
+  float Color1 = 0;
+  float Color2 = 0;
+  float Color3 = 0;
+
+  float xPos = 0.0;
+  float yPos = 0.0;
+
+  float colorRange = 200;
+
+  //INTIALIZE
+  for (int i = 0; i < N; i++) {
+
+    ParticleSize = random(2, 4+1*pow(sin(counter*0.00001), 2.0));
+
+    Color1 = random(colorRange, colorRange+100);
+    Color2 = 0;
+    Color3 = random(0, colorRange);
+
+    xPos = random(InitXPosLeft, InitXPosRight);
+    yPos = random(InitYPosDown, InitYPosUp);
+
+    particleCollection1[i] = new Particle(
+      random(InitXPosLeft, InitXPosRight), 
+      random(InitYPosDown, InitYPosUp), 
+      random(-InitVelocitySpread, InitVelocitySpread), 
+      random(-InitVelocitySpread, InitVelocitySpread), 
+      ParticleTint, xPos/5, yPos/5, sqrt(xPos*xPos+yPos*yPos)/5, ParticleSize);
+
+    
+  }
+}
+
+float average (float[] arr){
+  
+  float sum = 0.0;
+  
+  for (int j = 0; j < arr.length; j++) sum += arr[j];
+  
+  sum /= arr.length;
+  
+  return sum;
+  
+}
+
+float maximum (float[] arr){
+  
+  float max = 0.0;
+  
+  for (int j = 0; j < arr.length; j++) {
+    
+    if (arr[j]>max) max = arr[j];
+    
+    
+  }
+    
+    
+  return max;
+  
+  
+}
+
+float minimum (float[] arr) {
+  
+  float min = 0.0;
+  
+  for (int j = 0; j < arr.length; j++){
+    
+    if (arr[j]<min) min = arr[j];
+    
+  }
+    
+  return min;
+  
+  
+}
+
+
+
+
+
+void draw() {
+
+
+  //background(bckgrndColorR,bckgrndColorG,bckgrndColorB);
+  background(0, 0, 0);
+  
+  testCounter = 0;
+  val = "";
+  
+  for (int j = 0; j < distDataSampleNum; j++){
+
+  if ( myPort.available() > 0) {
+    
+    val = myPort.readStringUntil('\n');
+    try {
+    distDataUltra[j] = float(val);
+    } catch (NullPointerException e){
+    
+  }
+    try {
+    valNum = parseFloat(val);
+    println(valNum);
+    
+    if (valNum > 50){
+    disp = true;
+    } else {
+    disp = false;
+    }
+    } catch (NullPointerException e){
+    
+  }
+  }
+  
+  }
+  
+  //if (abs(maximum(distDataUltra)-minimum(distDataUltra)) > 11.0) avgDist = minimum(distDataUltra);
+  //else avgDist = average(distDataUltra);
+
+  avgDist = 2*abs(1.0-avgDist);
+  
+  
+  //println(avgDist);
+  
+
+  //CALL FUNCTIONALITY
+  for (int i = 0; i < N; i++) {
+
+    particleCollection1[i].run(cloudXCenterLeft,0.0);
+   
+  }
+
+  counter += 1;
+}
