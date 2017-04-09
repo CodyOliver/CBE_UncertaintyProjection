@@ -1,0 +1,237 @@
+class Particle {
+
+  //GLOBAL VARIABLES
+
+  float mouseVertPos = 0.0;
+
+  float x = 0;
+  float y = 0;
+
+  float distFromCenter = 0;
+
+  float vx = 0;
+  float vy = 0;
+
+  float spatialFreqModColorInit = 100;
+  float spatialFreqModColorFinal = 100;
+
+  float temporalFreqModColorInit = 0.025;
+  float temporalFreqModColorFinal= 0.09;
+
+  float temporalFreqModColor = 0.04;
+
+
+  float gammaInit = 0.4;
+  float gammaFinal = 0.0;
+
+  float tempInit = 7.8;
+  float tempFinal = 0.0;
+
+  float size = 0;
+
+  float opacity = 0;
+
+  float color1 = 0;
+  float color2 = 0;
+  float color3 = 0;
+
+
+  float kInit = 0.035;
+  float kFinal = 0.0;
+
+  float spatialFreqModColor = 0.0;
+
+  float gamma = 0.0;
+  float temp = 0.0;
+  float k = 0.01;
+
+
+
+  float power = 30.0;
+
+  float xCenter = width/2.0;
+  float yCenter = height/2.0;
+
+
+  //CONSTRUCTORS
+  Particle(float _x, float _y, float _vx, 
+    float _vy, float _opacity, float _color1, float _color2, float _color3, float _size) {
+
+    x = _x;
+    y = _y;
+    vx = _vx;
+    vy = _vy;
+
+    opacity = _opacity;
+
+    color1 = pow(sin(10*distFromCenter), 1.0)*255;
+    color2 = pow(sin(10*distFromCenter), 1.0)*255;
+    color3 = pow(sin(10*distFromCenter), 1.0)*255;
+
+    size = _size;
+  }
+
+
+  //FUNCTIONS
+  void run(float XCloudCenter, float phase) {
+
+    display(XCloudCenter, phase);
+    move();
+    if (disp == true){
+    //Dispersion
+    harmonic(XCloudCenter);
+    } else {
+      
+    }
+    thermal();
+    //bounce();
+    pacman();
+    
+  }
+  
+  void bounce(){
+    
+    if (x < 0 || x > width) {
+      
+      vx = -vx;
+      
+    }
+    
+     if (y < 0 || y > height) {
+      
+      vy = -vy;
+      
+    }
+    
+    
+  }
+  
+    void pacman(){
+    
+    if (x < 0) x = width;
+    if (x > width) x = 0;
+    
+    if (y < 0) y = height;
+    if (y > height) y = 0;
+    
+    if (x < 0 && y < 0) {
+      
+      x = width;
+      y = height;
+      
+    }
+    
+     if (x < 0 && y > height) {
+      
+      x = width;
+      y = 0;
+      
+    }
+    
+     if (x > width && y < 0) {
+      
+      x = 0;
+      y = height;
+      
+    }
+    
+    if (x > width && y > height) {
+      
+      x = 0;
+      y = 0;
+      
+    }
+    
+    
+  }
+  
+  float colorDynamics (float spatialFreqModColorInit, float distFromCenter, float temporalFreqModColor, int counter, int colorNumber, int modeNumber){
+    
+    
+    
+    
+    return 0.0;
+    
+    
+  }
+
+
+  void display(float XCloudCenter, float phase) {
+
+    mouseVertPos = avgDist;
+    distFromCenter = sqrt((x-xCenter-XCloudCenter)*(x-xCenter-XCloudCenter)+(y-yCenter)*(y-yCenter))+XCloudCenter;
+    spatialFreqModColor = spatialFreqModColorInit*pow(1.0-avgDist, power)
+      +spatialFreqModColorFinal*pow(avgDist, power);
+      
+      temporalFreqModColor = pow(spatialFreqModColor,2.0);
+
+    color1 = 255+20*(pow(sin(spatialFreqModColor*distFromCenter-0.00001*temporalFreqModColor*counter)+
+      sin(0.25*spatialFreqModColor*distFromCenter+100-0.00001*temporalFreqModColor*counter+phase)+PI/2.0, 1.0));
+    //color2 = 255 + 20*(pow(cos(0.5*spatialFreqModColor*distFromCenter-0.0001*counter+phase)+
+      //cos(0.25*spatialFreqModColor*distFromCenter-temporalFreqModColor*counter+phase)+PI, 1.0));
+    color3 = 155+20*(pow(cos(spatialFreqModColor*(distFromCenter-XCloudCenter)-0.0000001*counter+phase)+
+      cos(0.5*spatialFreqModColor*(distFromCenter-XCloudCenter)-0.0001*temporalFreqModColor*counter+phase)+PI/2.0, 1.0));
+      
+   
+     color2 = 120+50*sin(mouseVertPos*color2*0.001)*1;
+     
+     
+     opacity = 100+80*sin(0.6*distFromCenter*pow((0.05+avgDist),1.0)-0.0001*counter+phase);
+
+    fill(color1, color2, color3, opacity);
+    stroke(abs(255-color1), cos(abs(255-color2)*counter*0.0001+phase)*20+100, abs(255-color3), opacity*0.4);
+    rect(x, y, size, size);
+    
+    
+  }
+
+
+
+  void move() {
+
+    x += vx;
+    y += vy;
+  }
+
+  void harmonic(float XCloudCenter) {
+
+    mouseVertPos = abs((height-parseFloat(mouseY))/height);
+
+    //k = kFinal;
+
+    k = kInit*pow(1.0-avgDist, power)+kFinal*pow(avgDist, power);
+    
+    if ( x > 10 || x < width-10){
+
+    vx += -k*(x-width/2-XCloudCenter);
+    vy += -k*(y-height/2);
+    
+    }
+    
+    else {
+      
+      vx = 0;
+      
+      
+    }
+  }
+
+  void thermal() {
+
+    mouseVertPos = abs((height-parseFloat(mouseY))/height);
+
+    //gamma = gammaFinal;
+    //temp = tempFinal;
+
+    temp = tempInit*pow(1.0-avgDist, power*2)+tempFinal*pow(avgDist, power*2);
+    gamma = gammaInit*pow(1.0-avgDist, power)+gammaFinal*pow(avgDist, power);
+
+
+    vx += random(-temp, temp) - gamma*vx;
+    vy += random(-temp, temp) - gamma*vy;
+  }
+}
+
+
+void backgroundArray() {
+ }
